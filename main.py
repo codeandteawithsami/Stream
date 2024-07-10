@@ -4,23 +4,19 @@ import cv2
 def main():
     st.title("Video Streaming with Streamlit")
 
-    # Use the camera if you have a webcam
-    use_camera = st.checkbox("Use Camera")
-    
-    # If not using camera, ask for a video file
-    if not use_camera:
-        video_file = st.file_uploader("Upload a Video", type=["mp4", "avi", "mov", "mkv"])
-    
-    if use_camera:
-        # Start capturing from the camera
-        cap = cv2.VideoCapture(0)
-    else:
-        if video_file is not None:
-            # Start capturing from the uploaded video file
-            cap = cv2.VideoCapture(video_file.name)
-        else:
-            st.text("Please upload a video file or select to use the camera.")
-            return
+    # Sidebar selection for camera or file upload
+    streaming_option = st.sidebar.radio("Choose Streaming Option", ("Camera", "Upload Video"))
+
+    if streaming_option == "Camera":
+        show_camera_stream()
+    elif streaming_option == "Upload Video":
+        show_uploaded_video()
+
+def show_camera_stream():
+    st.subheader("Camera Streaming")
+
+    # Start capturing from the camera
+    cap = cv2.VideoCapture(0)
 
     stframe = st.empty()
     while True:
@@ -31,6 +27,28 @@ def main():
         stframe.image(frame, channels="RGB", use_column_width=True)
 
     cap.release()
+
+def show_uploaded_video():
+    st.subheader("Upload Video")
+
+    # File uploader for video files
+    video_file = st.file_uploader("Upload a Video File", type=["mp4", "avi", "mov", "mkv"])
+
+    if video_file is not None:
+        # Start capturing from the uploaded video file
+        cap = cv2.VideoCapture(video_file)
+
+        stframe = st.empty()
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            stframe.image(frame, channels="RGB", use_column_width=True)
+
+        cap.release()
+    else:
+        st.warning("Please upload a video file.")
 
 if __name__ == "__main__":
     main()
